@@ -1,10 +1,9 @@
 language: php
+sudo: false
 
 php:
   - 7.1
   - 7.2
-
-sudo: false
 
 before_script:
   - composer self-update

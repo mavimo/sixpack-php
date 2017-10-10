@@ -6,32 +6,39 @@ namespace SeatGeek\Sixpack\Response;
 
 class Base
 {
-    protected $response = null;
-    protected $meta = null;
+    /**
+     * @var array
+     */
+    protected $response = [];
 
-    public function __construct($jsonResponse, $meta)
+    /**
+     * @var array
+     */
+    protected $meta = [];
+
+    public function __construct(string $jsonResponse, array $meta)
     {
-        $this->response = json_decode($jsonResponse);
+        $this->response = json_decode($jsonResponse, true);
         $this->meta = $meta;
     }
 
-    public function getSuccess()
+    public function getSuccess(): bool
     {
         return ($this->meta['http_code'] === 200);
     }
 
-    public function getStatus()
+    public function getStatus(): int
     {
-        return $this->meta['http_code'];
+        return (int) $this->meta['http_code'];
     }
 
-    public function getCalledUrl()
+    public function getCalledUrl(): string
     {
         return $this->meta['url'];
     }
 
-    public function getClientId()
+    public function getClientId(): string
     {
-        return $this->response->client_id;
+        return $this->response['client_id'];
     }
 }

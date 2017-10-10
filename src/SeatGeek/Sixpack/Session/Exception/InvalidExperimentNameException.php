@@ -16,20 +16,19 @@ class InvalidExperimentNameException extends Exception
      *
      * @var string
      */
-    protected $messageTemplate = "The experiement name \"%s\" is invalid";
+    protected $messageTemplate = 'The experiement name "%s" is invalid';
 
     /**
      * Constructor
      *
      * @param string|null If passed, it's the experiment name
-     * @param int $code The exception code
-     * @param \Exception $previous The previous exception
      */
-    public function __construct($message = null, $code = 0, Exception $previous = null)
+    public function __construct(?string $message = null, int $code = 0, Exception $previous = null)
     {
         if ($message) {
             $message = sprintf($this->messageTemplate, $message);
         }
+
         return parent::__construct($message, $code, $previous);
     }
 }

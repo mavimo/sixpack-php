@@ -10,7 +10,7 @@ class Participation extends Base
 {
     private $control = null;
 
-    public function __construct($jsonResponse, $meta, $control = null)
+    public function __construct(string $jsonResponse, array $meta, string $control = null)
     {
         if ($control !== null) {
             $this->control = $control;
@@ -19,16 +19,17 @@ class Participation extends Base
         parent::__construct($jsonResponse, $meta);
     }
 
-    public function getExperiment()
+    public function getExperiment(): string
     {
-        return $this->response->experiment;
+        return $this->response['experiment'];
     }
 
-    public function getAlternative()
+    public function getAlternative(): string
     {
         if (!$this->getSuccess()) {
             return $this->control;
         }
-        return $this->response->alternative->name;
+
+        return $this->response['alternative']['name'];
     }
 }
