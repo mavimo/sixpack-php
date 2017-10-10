@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SeatGeek\Sixpack\Session;
 
 use SeatGeek\Sixpack\Response;
+use SeatGeek\Sixpack\Response\Participation;
 use SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException;
 use SeatGeek\Sixpack\Session\Exception\InvalidForcedAlternativeException;
 use InvalidArgumentException;
@@ -18,7 +19,7 @@ class Base
 
     protected $clientId = null;
 
-    public function __construct($options = array())
+    public function __construct(array $options = [])
     {
         if (isset($options["baseUrl"])) {
             $this->baseUrl = $options["baseUrl"];
@@ -85,10 +86,8 @@ class Base
     public function isForced($experiment)
     {
         $forceKey = "sixpack-force-" . $experiment;
-        if (in_array($forceKey, array_keys($_GET), true)) {
-            return true;
-        }
-        return false;
+
+        return in_array($forceKey, array_keys($_GET), true);
     }
 
     /**
@@ -156,9 +155,8 @@ class Base
      *   than 1
      * @throws \SeatGeek\Sixpack\Session\Exception\InvalidForcedAlternativeException
      *   if an alternative is requested that doesn't exist
-     * @return \SeatGeek\Sixpack\Response\Participation
      */
-    public function participate($experiment, $alternatives, $traffic_fraction = 1)
+    public function participate(string $experiment, array $alternatives, $trafficFraction = 1): Participation
     {
         if (count($alternatives) < 2) {
             throw new InvalidArgumentException("At least two alternatives are required");
@@ -170,7 +168,7 @@ class Base
             }
         }
 
-        if (floatval($traffic_fraction) < 0 || floatval($traffic_fraction) > 1) {
+        if (floatval($trafficFraction) < 0 || floatval($trafficFraction) > 1) {
             throw new InvalidArgumentException("Invalid Traffic Fraction");
         }
 
@@ -180,22 +178,23 @@ class Base
             list($rawResp, $meta) = $this->sendRequest('participate', array(
                 "experiment" => $experiment,
                 "alternatives" => $alternatives,
-                "traffic_fraction" => $traffic_fraction
+                "traffic_fraction" => $trafficFraction
             ));
         }
 
         return new Response\Participation($rawResp, $meta, $alternatives[0]);
     }
 
-    protected function getUserAgent()
+    protected function getUserAgent(): ?string
     {
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
             return $_SERVER['HTTP_USER_AGENT'];
         }
+
         return null;
     }
 
-    protected function getIpAddress()
+    protected function getIpAddress(): ?string
     {
         $ordered_choices = array(
             'HTTP_X_FORWARDED_FOR',
@@ -223,23 +222,20 @@ class Base
     /**
      * Send the request to sixpack
      *
-     * @param string $endpoint api end point
-     * @param array $params
      * @throws \SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException
      *   if the experiment name is invalid
-     * @return array
      */
-    protected function sendRequest($endpoint, $params = array())
+    protected function sendRequest(string $endpoint, array $params = []): array
     {
         if (isset($params["experiment"]) && !preg_match('#^[a-z0-9][a-z0-9\-_ ]*$#i', $params["experiment"])) {
             throw new InvalidExperimentNameException($params["experiment"]);
         }
 
-        $params = array_merge(array(
+        $params = array_merge([
             'client_id' => $this->clientId,
             'ip_address' => $this->getIpAddress(),
             'user_agent' => $this->getUserAgent()
-        ), $params);
+        ], $params);
 
         $url = $this->baseUrl . '/' . $endpoint;
 
