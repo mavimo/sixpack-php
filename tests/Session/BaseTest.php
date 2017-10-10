@@ -3,9 +3,9 @@
 namespace SeatGeek\Sixpack\Test\Session;
 
 use SeatGeek\Sixpack\Session\Base;
-use \PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class BaseTest extends PHPUnit_Framework_TestCase
+class BaseTest extends TestCase
 {
     /**
      * Verify the mocked method call to sendRequest, and that the return value
