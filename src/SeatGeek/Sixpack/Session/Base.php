@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SeatGeek\Sixpack\Session;
 
 use SeatGeek\Sixpack\Response;
+use SeatGeek\Sixpack\Response\Conversion;
 use SeatGeek\Sixpack\Response\Participation;
 use SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException;
 use SeatGeek\Sixpack\Session\Exception\InvalidForcedAlternativeException;
@@ -12,59 +13,78 @@ use InvalidArgumentException;
 
 class Base
 {
-    // configuration
+    /**
+     * @var string
+     */
     protected $baseUrl = 'http://localhost:5000';
+
+    /**
+     * @var string
+     */
     protected $cookiePrefix = 'sixpack';
+
+    /**
+     * @var int
+     */
     protected $timeout = 500;
 
+    /**
+     * @var string
+     */
     protected $clientId = null;
 
     public function __construct(array $options = [])
     {
-        if (isset($options["baseUrl"])) {
-            $this->baseUrl = $options["baseUrl"];
+        if (isset($options['baseUrl'])) {
+            $this->baseUrl = $options['baseUrl'];
         }
-        if (isset($options["cookiePrefix"])) {
-            $this->cookiePrefix = $options["cookiePrefix"];
+        if (isset($options['cookiePrefix'])) {
+            $this->cookiePrefix = $options['cookiePrefix'];
         }
-        if (isset($options["timeout"])) {
-            $this->timeout = $options["timeout"];
+        if (isset($options['timeout'])) {
+            $this->timeout = $options['timeout'];
         }
-        $this->setClientId(isset($options["clientId"]) ? $options["clientId"] : null);
+        $this->setClientId(isset($options['clientId']) ? $options['clientId'] : null);
     }
 
-    protected function setClientId($clientId = null)
+    protected function setClientId(string $clientId = null)
     {
         if ($clientId === null) {
             $clientId = $this->retrieveClientId();
         }
+
         if ($clientId === null) {
             $clientId = $this->generateClientId();
         }
+
         $this->clientId = $clientId;
         $this->storeClientId($clientId);
     }
 
-    public function getClientid()
+    public function getClientid(): ?string
     {
         return $this->clientId;
     }
 
-    protected function retrieveClientId()
+    protected function retrieveClientId(): ?string
     {
         $cookieName = $this->cookiePrefix . '_client_id';
+
         if (isset($_COOKIE[$cookieName])) {
             return $_COOKIE[$cookieName];
         }
+
+        return null;
     }
 
-    protected function storeClientId($clientId)
+    protected function storeClientId(?string $clientId): void
     {
         $cookieName = $this->cookiePrefix . '_client_id';
+
         setcookie($cookieName, $clientId, time() + (60 * 60 * 24 * 30 * 100), "/");
     }
 
-    protected function generateClientId()
+    protected function generateClientId(): string
     {
         // This is just a first pass for testing. not actually unique.
         // TODO, NOT THIS
@@ -73,19 +93,19 @@ class Base
         return $clientId;
     }
 
-    public function setTimeout($milliseconds)
+    public function setTimeout(int $milliseconds): void
     {
         $this->timeout = $milliseconds;
     }
 
-    public function getTimeout()
+    public function getTimeout(): int
     {
         return $this->timeout;
     }
 
-    public function isForced($experiment)
+    public function isForced(string $experiment): bool
     {
-        $forceKey = "sixpack-force-" . $experiment;
+        $forceKey = sprintf('sixpack-force-%s', $experiment);
 
         return in_array($forceKey, array_keys($_GET), true);
     }
@@ -93,30 +113,32 @@ class Base
     /**
      * Force the alternative
      *
-     * @param string $experiment
-     * @param array $alternatives
      * @throws \SeatGeek\Sixpack\Session\Exception\InvalidForcedAlternativeException
      *   if an alternative is requested that doesn't exist
-     * @return array
      */
-    protected function forceAlternative($experiment, $alternatives)
+    protected function forceAlternative(string $experiment, array $alternatives): array
     {
-        $forceKey = "sixpack-force-" . $experiment;
+        $forceKey = sprintf('sixpack-force-%s', $experiment);
+
         $forcedAlt = isset($_GET[$forceKey]) ? $_GET[$forceKey] : null;
 
         if (!in_array($forcedAlt, $alternatives)) {
-            throw new InvalidForcedAlternativeException(array($forcedAlt, $alternatives));
+            throw new InvalidForcedAlternativeException([$forcedAlt, $alternatives]);
         }
 
-        $mockJson = json_encode(array(
-          "status" => "ok",
-          "alternative" => array("name" => $forcedAlt),
-          "experiment" => array("version" => 0, "name" => $experiment),
-          "client_id" => null,
-        ));
-        $mockMeta = array('http_code' => 200, 'called_url' => '');
+        $mockJson = json_encode([
+          'status' => 'ok',
+          'alternative' => ['name' => $forcedAlt],
+          'experiment' => ['version' => 0, 'name' => $experiment],
+          'client_id' => null,
+        ]);
 
-        return array($mockJson, $mockMeta);
+        $mockMeta = [
+            'http_code' => 200,
+            'called_url' => '',
+        ];
+
+        return [$mockJson, $mockMeta];
     }
 
     public function status()
@@ -125,28 +147,26 @@ class Base
     }
 
     /**
-     * convert
+     * Convert an experiment
      *
-     * @param string $experiment
      * @param mixed $kpi
+     *
      * @throws \SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException
      *   if the experiment name is invalid
-     * @return \SeatGeek\Sixpack\Response\Conversion
      */
-    public function convert($experiment, $kpi = null)
+    public function convert(string $experiment, $kpi = null): Conversion
     {
-        list($rawResp, $meta) = $this->sendRequest('convert', array(
-            "experiment" => $experiment,
-            "kpi" => $kpi,
-        ));
-        return new Response\Conversion($rawResp, $meta);
+        list($rawResp, $meta) = $this->sendRequest('convert', [
+            'experiment' => $experiment,
+            'kpi' => $kpi,
+        ]);
+
+        return new Conversion($rawResp, $meta);
     }
 
     /**
      * Participate in an experiment
      *
-     * @param string $experiment name of the experiment
-     * @param array $alternatives the alternatives to pick from
      * @throws \SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException
      *   if the experiment name is invalid
      * @throws \InvalidArgumentException if less than two alternatives are specified
@@ -175,11 +195,11 @@ class Base
         if ($this->isForced($experiment)) {
             list($rawResp, $meta) = $this->forceAlternative($experiment, $alternatives);
         } else {
-            list($rawResp, $meta) = $this->sendRequest('participate', array(
-                "experiment" => $experiment,
-                "alternatives" => $alternatives,
-                "traffic_fraction" => $trafficFraction
-            ));
+            list($rawResp, $meta) = $this->sendRequest('participate', [
+                'experiment' => $experiment,
+                'alternatives' => $alternatives,
+                'traffic_fraction' => $trafficFraction
+            ]);
         }
 
         return new Response\Participation($rawResp, $meta, $alternatives[0]);
@@ -196,13 +216,14 @@ class Base
 
     protected function getIpAddress(): ?string
     {
-        $ordered_choices = array(
+        $ordered_choices = [
             'HTTP_X_FORWARDED_FOR',
             'HTTP_X_REAL_IP',
             'HTTP_CLIENT_IP',
             'REMOTE_ADDR'
-        );
-        $invalid_ips = array('127.0.0.1', '::1');
+        ];
+
+        $invalid_ips = ['127.0.0.1', '::1'];
 
         // check each server var in order
         // accepted ip must be non null and not in the invalid_ips list
@@ -253,6 +274,6 @@ class Base
         $meta = curl_getinfo($ch);
 
         // handle failures in call dispatcher
-        return array($return, $meta);
+        return [$return, $meta];
     }
 }
