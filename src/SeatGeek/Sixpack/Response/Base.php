@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SeatGeek\Sixpack\Response;
 
-class Base
+abstract class Base
 {
     /**
      * @var array

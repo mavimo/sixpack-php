@@ -6,7 +6,7 @@ namespace SeatGeek\Sixpack\Response;
 
 use SeatGeek\Sixpack\Response\Base;
 
-class Participation extends Base
+final class Participation extends Base
 {
     private $control = null;
 

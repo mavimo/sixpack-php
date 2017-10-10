@@ -49,15 +49,10 @@ class Base
 
     protected function setClientId(string $clientId = null)
     {
-        if ($clientId === null) {
-            $clientId = $this->retrieveClientId();
-        }
+        $this->clientId = $clientId
+            ?? $this->retrieveClientId()
+            ?? $this->generateClientId();
 
-        if ($clientId === null) {
-            $clientId = $this->generateClientId();
-        }
-
-        $this->clientId = $clientId;
         $this->storeClientId($clientId);
     }
 
@@ -267,6 +262,7 @@ class Base
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT_MS, $this->timeout);
+
         // Make sub 1 sec timeouts work, according to: http://ravidhavlesha.wordpress.com/2012/01/08/curl-timeout-problem-and-solution/
         curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
 
