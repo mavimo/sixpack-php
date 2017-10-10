@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SeatGeek\Sixpack\Session\Exception;
 
-use \Exception;
+use Exception;
 
 /**
  * Used when a forced alternative is requested that doesn't exist

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SeatGeek\Sixpack\Test\Session;
 
 use SeatGeek\Sixpack\Session\Base;
@@ -11,7 +13,7 @@ class BaseTest extends TestCase
      * Verify the mocked method call to sendRequest, and that the return value
      * is the right class
      */
-    public function testParticipateValidArgs()
+    public function testParticipateValidArgs(): void
     {
         $base = $this->getMockBuilder('SeatGeek\Sixpack\Session\Base')
             ->disableOriginalConstructor()
@@ -22,6 +24,7 @@ class BaseTest extends TestCase
             'raw response',
             ['meta', 'data']
         ];
+
         $base->expects($this->once())
             ->method('sendRequest')
             ->with(
@@ -43,7 +46,7 @@ class BaseTest extends TestCase
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage At least two alternatives are required
      */
-    public function testParticipateTooFewAlternatives()
+    public function testParticipateTooFewAlternatives(): void
     {
         $base = $this->getMockBuilder('SeatGeek\Sixpack\Session\Base')
             ->disableOriginalConstructor()
@@ -61,7 +64,7 @@ class BaseTest extends TestCase
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Invalid Alternative Name: $ne
      */
-    public function testParticipateInvalidAlternativeName()
+    public function testParticipateInvalidAlternativeName(): void
     {
         $base = $this->getMockBuilder('SeatGeek\Sixpack\Session\Base')
             ->disableOriginalConstructor()
@@ -80,7 +83,7 @@ class BaseTest extends TestCase
      * @expectedExceptionMessage Invalid Traffic Fraction
      * @dataProvider invalidTrafficFractionProvider
      */
-    public function testParticipateInvalidTrafficFraction($fraction)
+    public function testParticipateInvalidTrafficFraction($fraction): void
     {
         $base = $this->getMockBuilder('SeatGeek\Sixpack\Session\Base')
             ->disableOriginalConstructor()
@@ -92,10 +95,8 @@ class BaseTest extends TestCase
 
     /**
      * invalidTrafficFractionProvider
-     *
-     * @return array
      */
-    public function invalidTrafficFractionProvider()
+    public function invalidTrafficFractionProvider(): array
     {
         return [
             [-1],
@@ -111,7 +112,7 @@ class BaseTest extends TestCase
      * @expectedException \SeatGeek\Sixpack\Session\Exception\InvalidForcedAlternativeException
      * @expectedExceptionMessage The alternative "not configured" is not one of the possibilities (one, two)
      */
-    public function testParticipateInvalidForcedAlternative()
+    public function testParticipateInvalidForcedAlternative(): void
     {
         $_GET['sixpack-force-experiment'] = 'not configured';
 
@@ -129,7 +130,7 @@ class BaseTest extends TestCase
      * @expectedException \SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException
      * @expectedExceptionMessage The experiement name "experiments; the final frontier" is invalid
      */
-    public function testParticipateInvalidExperimentName()
+    public function testParticipateInvalidExperimentName(): void
     {
         $_GET['sixpack-force-experiment'] = 'not configured';
 

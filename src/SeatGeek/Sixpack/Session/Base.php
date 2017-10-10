@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SeatGeek\Sixpack\Session;
 
 use SeatGeek\Sixpack\Response;
 use SeatGeek\Sixpack\Session\Exception\InvalidExperimentNameException;
 use SeatGeek\Sixpack\Session\Exception\InvalidForcedAlternativeException;
-use \InvalidArgumentException;
+use InvalidArgumentException;
 
 class Base
 {

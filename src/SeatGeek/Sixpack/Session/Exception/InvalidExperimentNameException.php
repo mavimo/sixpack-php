@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SeatGeek\Sixpack\Session\Exception;
 
-use \Exception;
+use Exception;
 
 /**
  * Used when an experiement name is deemed invalid

@@ -1,4 +1,8 @@
-<?php namespace SeatGeek\Sixpack\Response;
+<?php
+
+declare(strict_types=1);
+
+namespace SeatGeek\Sixpack\Response;
 
 class Base
 {
